@@ -12,9 +12,15 @@ package mondrian.olap4j;
 import mondrian.olap.MondrianDef;
 import mondrian.rolap.RolapBaseCubeMeasure;
 import mondrian.rolap.RolapConnection;
+import mondrian.rolap.RolapCubeDimension;
+import mondrian.rolap.RolapCubeHierarchy;
+import mondrian.rolap.RolapHierarchy;
 import mondrian.rolap.RolapStar;
 import org.apache.log4j.Logger;
 import org.olap4j.OlapConnection;
+import org.olap4j.OlapWrapper;
+import org.olap4j.metadata.Dimension;
+import org.olap4j.metadata.Hierarchy;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -71,9 +77,10 @@ public class MondrianOlap4jHelper {
     try {
       RolapStar.Measure measure = (RolapStar.Measure) rolapMeasure.getStarMeasure();
 
+      String schemaName = ( (MondrianDef.Table) measure.getTable().getRelation()).schema;
       String tableName = measure.getTable().getTableName();
       String columnName = ( (MondrianDef.Column) rolapMeasure.getMondrianDefExpression() ).getColumnName();
-      ResultSet rs = databaseMetaData.getColumns( null, null, tableName, columnName );
+      ResultSet rs = databaseMetaData.getColumns( null, schemaName, tableName, columnName );
       if ( rs.next() ) {
         type = Integer.valueOf( rs.getString( "DATA_TYPE" ) );
       }
@@ -82,5 +89,35 @@ public class MondrianOlap4jHelper {
     }
 
     return type;
+  }
+
+  public String getPrimaryKey( Hierarchy hierarchy ) {
+    String primaryKey = null;
+    try {
+      RolapCubeHierarchy rolapCubeHierarchy = ( (OlapWrapper) hierarchy ).unwrap( RolapCubeHierarchy.class );
+      primaryKey = rolapCubeHierarchy.getXmlHierarchy().primaryKey;
+      rolapCubeHierarchy
+    } catch ( ClassCastException e ) {
+
+    } catch ( SQLException e ) {
+      e.printStackTrace();
+    }
+
+    return primaryKey;
+  }
+
+  public String getForeignKey( Dimension dimension ) {
+    String foreignKey = null;
+    try {
+      RolapCubeDimension rolapDimension = ( (OlapWrapper) dimension ).unwrap( RolapCubeDimension.class );
+      rolapDimension.xmlDimension.foreignKey;
+
+    } catch ( ClassCastException e ) {
+
+    } catch ( SQLException e ) {
+      e.printStackTrace();
+    }
+
+    return foreignKey;
   }
 }
